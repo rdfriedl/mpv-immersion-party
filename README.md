@@ -2,7 +2,10 @@
 
 This is a nodejs cli tool that manages multiple instances of mpv and uses the `--audio-device` option to output each instances audio to a different device.
 
-**NOTE: this script requires NodeJS to be installed on your system ([install](https://nodejs.org/en/download/))**
+## Setup
+
+1. Install NodeJS from [nodejs.org](https://nodejs.org/en/download/)
+2. Install MPV from [mpv.io](https://mpv.io/installation/)
 
 ## Video file requirements
 
