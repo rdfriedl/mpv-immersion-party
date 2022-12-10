@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 import Mpv from "mpv";
 import os from "os";
 import shell from "shelljs";
