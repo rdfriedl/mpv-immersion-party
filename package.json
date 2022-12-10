@@ -8,6 +8,10 @@
   "scripts": {
     "format": "prettier -w ."
   },
+  "files": [
+    "index.js",
+    "CHANGELOG.md"
+  ],
   "dependencies": {
     "inquirer": "^9.1.4",
     "mpv": "^1.0.0",
