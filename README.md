@@ -17,7 +17,7 @@ The `--audio-device` ([docs](https://mpv.io/manual/stable/#options-audio-device)
 
 ## Example
 
-*npx is a command that comes with NodeJS to download and run packages ([docs](https://docs.npmjs.com/cli/v7/commands/npx))*
+_npx is a command that comes with NodeJS to download and run packages ([docs](https://docs.npmjs.com/cli/v7/commands/npx))_
 
 ```bash
 npx mpv-immersion-party VideoFile.mkv
