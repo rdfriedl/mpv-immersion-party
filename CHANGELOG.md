@@ -4,6 +4,7 @@
 
 - Add file picker to make it easier to select the video file
 - Reduce the number of dependencies
+- Fixed bug on windows with pause state not syncing
 
 ## 0.1.1
 

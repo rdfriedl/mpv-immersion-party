@@ -52,12 +52,14 @@ async function main() {
     const mpv = new Mpv({
       args,
     });
-    return { mpv, lang: track };
+    return { mpv, audio: track };
   });
 
   let ignoreNextSeekEventQueue = [];
-  for (const { mpv, lang } of instances) {
+  let ignoreNextPauseEventQueue = [];
+  for (const { mpv, audio } of instances) {
     await mpv.command("loadfile", movieFile);
+    await mpv.command("observe_property", 1, "pause");
 
     mpv.on("seek", async () => {
       if (ignoreNextSeekEventQueue.includes(mpv)) {
@@ -66,7 +68,7 @@ async function main() {
       }
 
       const time = await mpv.get("playback-time");
-      console.log(`${lang}: seek ${time}`);
+      console.log(`${audio.title}: seek ${time}`);
 
       for (const { mpv: other } of instances) {
         if (other !== mpv) {
@@ -76,24 +78,29 @@ async function main() {
       }
     });
 
-    async function setOtherPause() {
-      const pause = await mpv.get("pause");
-      console.log(`${lang}: pause ${pause}`);
-      for (const { mpv: other } of instances) {
-        if (other !== mpv) {
-          await other.set("pause", pause);
+    mpv.on("property-change", (event) => {
+      if (event.name === "pause") {
+        if (ignoreNextPauseEventQueue.includes(mpv)) {
+          ignoreNextPauseEventQueue = ignoreNextPauseEventQueue.filter((inst) => inst !== mpv);
+          return;
+        }
+        const pause = event.data;
+        console.log(`${audio.title}: pause ${pause}`);
+        for (const { mpv: other } of instances) {
+          if (other !== mpv) {
+            ignoreNextPauseEventQueue.push(other);
+            other.set("pause", pause);
+          }
         }
       }
-    }
-    mpv.on("pause", setOtherPause);
-    mpv.on("unpause", setOtherPause);
+    });
 
     mpv.on("error", (err) => {
       if (err) {
-        console.error(`${lang}: MPV Error`);
+        console.error(`${audio.title}: MPV Error`);
         console.log(err);
       } else {
-        console.warn(`${lang}: MPV closed`);
+        console.warn(`${audio.title}: MPV closed`);
       }
     });
   }
