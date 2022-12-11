@@ -2,7 +2,8 @@
 
 ## 0.2.0
 
-Reduce the number of dependencies.
+- Add file picker to make it easier to select the video file
+- Reduce the number of dependencies
 
 ## 0.1.1
 

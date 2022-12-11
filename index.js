@@ -3,6 +3,12 @@ const Mpv = require("mpv");
 const chalk = require("chalk");
 const { askForFile, getOutputDevices, getVideoFileTracks, pickAudioTracks, pickOutputDevice } = require("./helpers.js");
 
+const debug = (...args) => {
+  if (process.env.DEBUG) {
+    console.log(...args);
+  }
+};
+
 async function main() {
   let movieFile = process.argv[2];
   if (!movieFile) {
@@ -10,23 +16,43 @@ async function main() {
   }
 
   const tracks = await getVideoFileTracks(movieFile);
-  const audioTracks = tracks.filter((track) => track.type === "audio");
-  // const subTracks = tracks.filter((track) => track.type === "sub");
+  debug("Found tracks", tracks);
 
-  const langs = await pickAudioTracks(audioTracks);
+  const audioTracks = tracks
+    .filter((track) => track.type === "audio")
+    .map((track) => ({ ...track, title: track.title ?? track.lang }))
+    .filter((track) => track.title && track.lang);
+  debug("Found audio tracks", audioTracks);
+
+  const subTracks = tracks
+    .filter((track) => track.type === "sub")
+    .map((track) => ({ ...track, title: track.title ?? track.lang }))
+    .filter((track) => track.title && track.lang);
+  debug("Found sub tracks", subTracks);
+
+  const selectedAudioTracks = await pickAudioTracks(audioTracks);
   const devices = await getOutputDevices();
 
-  const langToDevice = {};
-  for (const language of langs) {
-    const outputDevice = await pickOutputDevice(devices, `Output device for ${chalk.green(language.title)}`);
-    langToDevice[language.lang] = outputDevice.name;
+  const audioToDevice = new Map();
+  for (const track of selectedAudioTracks) {
+    const outputDevice = await pickOutputDevice(devices, `Output device for ${chalk.green(track.title)}`);
+    audioToDevice.set(track, outputDevice);
   }
 
-  const instances = Object.entries(langToDevice).map(([lang, device]) => {
+  const instances = Array.from(audioToDevice.entries()).map(([track, device]) => {
+    const args = [
+      `--audio-device=${device.name}`,
+      `--aid=${track.id}`,
+      `--alang=${track.lang}`,
+      `--vlang=${track.lang}`,
+      `--slang=${track.lang}`,
+      "--pause",
+    ];
+    debug("starting MPV with", args);
     const mpv = new Mpv({
-      args: [`--audio-device=${device}`, `--alang=${lang}`, `--vlang=${lang}`, `--slang=${lang}`, "--pause"],
+      args,
     });
-    return { mpv, lang };
+    return { mpv, lang: track };
   });
 
   let ignoreNextSeekEventQueue = [];
